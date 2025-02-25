@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <h1>Welcome, {{ current_user.username }}!</h1>
+    <p>Here are your contacts:</p>
+
+    {% if contacts %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Reg Number</th>
+                    <th>Mobile</th>
+                    <th>Email</th>
+                    <th>Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contact in contacts %}
+                    <tr>
+                        <td>{{ contact.reg_number }}</td>
+                        <td>{{ contact.mobile }}</td>
+                        <td>{{ contact.email }}</td>
+                        <td>{{ contact.address }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No contacts yet.</p>
+    {% endif %}
+
+    <a href="{{ url_for('contact_form') }}" class="btn btn-primary">Add New Contact</a>
+    <a href="{{ url_for('search') }}" class="btn btn-secondary">Search Contacts</a>
+{% endblock %}
