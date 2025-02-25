@@ -53,7 +53,7 @@ This application allows users to:
 5.  **Run the application:**
 
     ```bash
-    python run.py
+    flask run
     ```
 
 ## Usage
