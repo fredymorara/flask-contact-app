@@ -15,8 +15,8 @@ This application allows users to:
 1.  **Clone the repository:**
 
     ```bash
-    git clone your_repository_url
-    cd your_repository_directory
+    git clone https://github.com/fredymorara/flask-contact-app
+    cd flask-contact-app
     ```
 
 2.  **Create a virtual environment:**
