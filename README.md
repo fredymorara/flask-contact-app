@@ -1,94 +1,121 @@
-# Flask Contact Management App
+# Flask Contact Manager
 
-This is a Flask-based contact management application with user authentication, password reset functionality, and a MongoDB database.
+A full-featured contact management web application built with Flask and MongoDB. It includes user authentication, a real-time WebSocket demo, and a clean, modern user interface.
 
-## Description
-
-This application allows users to:
-
-* Register and log in.
-* Add, search, and manage contacts.
-* Request and reset passwords.
-
-## Installation
-
-1.  **Clone the repository:**
-
-    ```bash
-    git clone https://github.com/fredymorara/flask-contact-app
-    cd flask-contact-app
-    ```
-
-2.  **Create a virtual environment:**
-
-    ```bash
-    python -m venv venv
-    venv\Scripts\activate  # On Windows
-    source venv/bin/activate # On macOS/Linux
-    ```
-
-3.  **Install dependencies:**
-
-    ```bash
-    pip install -r requirements.txt
-    ```
-    * If you have not created a requirements.txt file, you can create one with the command `pip freeze > requirements.txt`
-
-4.  **Create a `.env` file:**
-
-    * Create a `.env` file in the root directory and add your environment variables:
-
-    ```
-    SECRET_KEY=your_secret_key
-    MAIL_SERVER=smtp.gmail.com
-    MAIL_PORT=587
-    MAIL_USE_TLS=True
-    MAIL_USERNAME=your_gmail_address@gmail.com
-    MAIL_PASSWORD=your_app_password
-    MONGO_URI=your_mongodb_uri
-    ```
-
-    * Replace the placeholder values with your actual data.
-
-5.  **Run the application:**
-
-    ```bash
-    flask run
-    ```
-
-## Usage
-
-1.  Open your browser and navigate to `http://127.0.0.1:5000`.
-2.  Register a new user account or log in with existing credentials.
-3.  Use the dashboard to add, search, and manage contacts.
-4.  Use the password reset functionality if needed.
+---
 
 ## Features
 
-* User registration and login.
-* Contact management (add, search).
-* Password reset functionality.
-* MongoDB database integration.
-* Email sending via Flask-Mail.
+- **Full User Authentication**:
+  - User registration, login, and logout.
+  - Secure password hashing using Werkzeug.
+  - Session management with Flask-Login.
+  - "Forgot Password" functionality with secure tokens and email delivery.
+- **Complete Contact Management (CRUD)**:
+  - **C**reate: Add new contacts with mobile, email, address, and registration number.
+  - **R**ead: View all contacts in a clean, sortable dashboard.
+  - **U**pdate: Edit existing contact details.
+  - **D**elete: Remove contacts with a confirmation step.
+- **Real-Time WebSocket Demo**:
+  - A public chat room built with Flask-SocketIO to demonstrate real-time, bidirectional communication.
+- **Modern UI**:
+  - A polished and responsive user interface built with Bootstrap 5.
+  - Icons from Bootstrap Icons for better visual navigation.
+  - Clean card-based layouts and dismissible flash messages.
+- **Project Documentation**:
+  - Embedded documentation pages explaining the architecture and implementation of both the main app and the WebSocket demo.
+
+---
+
+## Getting Started
+
+Follow these instructions to set up and run the project on your local machine.
+
+### Prerequisites
+
+- Python 3.8+
+- A running MongoDB instance (local or on a service like MongoDB Atlas)
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/fredymorara/flask-contact-app
+cd flask-contact-app
+```
+
+### 2. Set Up a Virtual Environment
+
+It is highly recommended to use a virtual environment to manage project dependencies.
+
+```bash
+# Create the virtual environment
+python -m venv venv
+
+# Activate it
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
+```
+
+### 3. Install Dependencies
+
+Install all required packages using the `requirements.txt` file.
+
+```bash
+pip install -r requirements.txt
+pip install flask-socketio gunicorn eventlet
+```
+
+### 4. Configure Environment Variables
+
+Create a `.env` file in the root of the project. This file will hold your secret keys and connection URIs. Copy the following into it and replace the placeholder values.
+
+```
+SECRET_KEY='a-long-random-secret-string-for-security'
+
+# Your MongoDB connection string
+MONGO_URI='mongodb://localhost:27017/contacts_db'
+
+# Your Gmail credentials for sending password reset emails
+# IMPORTANT: Use a Google App Password, not your regular password
+MAIL_SERVER='smtp.gmail.com'
+MAIL_PORT=587
+MAIL_USE_TLS=True
+MAIL_USERNAME='your_email@gmail.com'
+MAIL_PASSWORD='your-16-character-app-password'
+```
+
+### 5. Run the Application
+
+Use the `run.py` script, which is configured to use the SocketIO server.
+
+```bash
+python run.py
+```
+
+The application will be available at `http://127.0.0.1:5000`.
+
+---
+
+## Project Structure
+
+- `run.py`: Main entry point for the application.
+- `config.py`: Handles configuration and environment variables.
+- `app/`: The main application package.
+  - `__init__.py`: Application factory, initializes Flask and extensions.
+  - `models.py`: Data models and helpers for User and Contact.
+  - `routes.py`: Defines all HTTP routes for the application.
+  - `sockets.py`: Defines all server-side WebSocket event handlers.
+  - `templates/`: Contains all Jinja2 HTML templates.
+- `documentation/`: Contains documentation pages.
+
+---
 
 ## Technologies Used
 
-* Python
-* Flask
-* Flask-Login
-* Flask-Mail
-* PyMongo
-* MongoDB
-* HTML/CSS
-
-## Contributing
-
-1.  Fork the repository.
-2.  Create a new branch for your feature or bug fix.
-3.  Commit your changes.
-4.  Push to your branch.
-5.  Submit a pull request.
-
-## Contact
-
-Fredrick M. Morara - momanyifredm@gmail.com - https://github.com/fredymorara
+- **Backend**: Python, Flask, Flask-SocketIO, Gunicorn
+- **Database**: MongoDB (with PyMongo)
+- **Frontend**: HTML, CSS, Bootstrap 5
+- **Authentication**: Flask-Login
+- **Email**: Flask-Mail
