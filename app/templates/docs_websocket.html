@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Docs: WebSocket Demo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-10">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h1 class="text-center">Documentation: HTML5 WebSocket Demo</h1>
+            </div>
+            <div class="card-body p-4 p-md-5">
+
+                <p class="lead">This document details the implementation of the real-time WebSocket demo page (Question 2) using the <strong>Flask-SocketIO</strong> library.</p>
+
+                <hr class="my-4">
+
+                <h2 class="mb-3">1. Backend Implementation</h2>
+                <p>The backend requires initialization and event handlers to manage the real-time connection.</p>
+
+                <h4>A. Library Installation</h4>
+                <p>The core technology used is <code>flask-socketio</code>, which was added to the project (e.g., via <code>pip install flask-socketio</code>).</p>
+                
+                <h4>B. Application Initialization</h4>
+                <ul>
+                    <li><strong><code>app/__init__.py</code>:</strong> A <code>SocketIO</code> instance is created by passing the Flask <code>app</code> object to it: <code>socketio = SocketIO(app)</code>.</li>
+                    <li><strong><code>run.py</code>:</strong> The application must be run using the <code>socketio</code> instance, not the Flask <code>app</code> instance, to enable the WebSocket server. The run command is changed to: <code>socketio.run(app, debug=True)</code>.</li>
+                </ul>
+
+                <h4>C. Server-Side Event Handlers (<code>app/sockets.py</code>)</h4>
+                <p>A new file was created to manage WebSocket events. These are not HTTP routes but event listeners identified by the <code> @socketio.on()</code> decorator.</p>
+                <ul>
+                    <li><strong><code> @socketio.on('connect')</code>:</strong> This event fires automatically when a client successfully connects from the JavaScript side. It's used here to send a "Welcome" message to that specific client.</li>
+                    <li><strong><code> @socketio.on('client_message')</code>:</strong> This is a <strong>custom event</strong>. It listens for any client to <code>emit</code> an event named 'client_message'. When it receives one, it takes the message data and <code>emit</code>s a new 'server_message' event back out to <strong>all</strong> connected clients (using <code>broadcast=True</code>).</li>
+                    <li><strong><code> @socketio.on('disconnect')</code>:</strong> This event fires automatically when a client closes their browser or navigates away.</li>
+                </ul>
+
+                <hr class="my-4">
+
+                <h2 class="mb-3">2. Frontend Implementation</h2>
+                <p>The frontend consists of a standard HTML page (<code>websocket_demo.html</code>) and client-side JavaScript to manage the connection.</p>
+
+                <h4>A. HTTP Route (<code>app/routes.py</code>)</h4>
+                <ul>
+                    <li>A simple, unauthenticated route <strong><code>/websocket_demo</code></strong> was added. Its only job is to render the <code>websocket_demo.html</code> template. It does not handle any real-time logic.</li>
+                </ul>
+
+                <h4>B. HTML Page (<code>app/templates/websocket_demo.html</code>)</h4>
+                <ul>
+                    <li>Includes a <code>&lt;div id="messages"&gt;</code> to serve as a log for incoming messages.</li>
+                    <li>Includes a <code>&lt;form id="message-form"&gt;</code> with an input field and a send button.</li>
+                    <li><strong>Crucially</strong>, it includes the <strong>Socket.IO client-side JavaScript library</strong>, which provides the <code>io()</code> function.</li>
+                </ul>
+
+                <h4>C. Client-Side JavaScript</h4>
+                <p>A <code>&lt;script&gt;</code> tag within the HTML page handles all client-side logic:</p>
+                <ol>
+                    <li><strong>Connection:</strong> <code>var socket = io.connect(...)</code> is called. This one line initiates the WebSocket connection, which triggers the <code>'connect'</code> event on the server.</li>
+                    <li><strong>Listening for Messages:</strong> <code>socket.on('server_message', ...)</code> is a listener. When the server <code>emit</code>s an event named 'server_message', this function runs, takes the message data, and appends it to the <code>#messages</code> div.</li>
+                    <li><strong>Sending Messages:</strong> An event listener on the form's <code>'submit'</code> event prevents the default page reload, gets the text from the input, and uses <code>socket.emit('client_message', {data: message})</code> to send that data to the server, triggering the <code>'client_message'</code> handler in <code>app/sockets.py</code>.</li>
+                </ol>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

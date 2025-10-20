@@ -20,4 +20,12 @@ login_manager.login_view = 'login'
 # Initialize Flask-Mail
 mail = Mail(app)
 
-from app import routes, models
+from flask_socketio import SocketIO
+
+socketio = SocketIO(app)
+
+from flask_socketio import SocketIO
+
+socketio = SocketIO(app)
+
+from app import routes, models, sockets, sockets

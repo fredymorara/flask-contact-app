@@ -232,6 +232,74 @@ def search():
         return render_template('search.html', results=search_results, search_term=search_term)
     return render_template('search.html')
 
+@app.route('/edit_contact/<contact_id>', methods=['GET', 'POST'])
+@login_required
+def edit_contact(contact_id):
+    # Find the specific contact, ensuring it belongs to the logged-in user
+    contact = db.contacts.find_one({'_id': ObjectId(contact_id), 'user_id': current_user._id})
+
+    if not contact:
+        flash('Contact not found or you do not have permission.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    if request.method == 'POST':
+        # Get updated data from the form
+        mobile = request.form.get('mobile')
+        email = request.form.get('email')
+        address = request.form.get('address')
+        reg_number = request.form.get('reg_number')
+
+        # Run validation
+        if not mobile or not email or not address or not reg_number:
+            flash('Please fill in all fields.', 'danger')
+            # Pass contact back to template to re-fill the form
+            return render_template('edit_contact.html', contact=contact)
+
+        # Update the contact in MongoDB
+        db.contacts.update_one(
+            {'_id': ObjectId(contact_id)},
+            {'$set': {
+                'mobile': mobile,
+                'email': email,
+                'address': address,
+                'reg_number': reg_number
+            }}
+        )
+        flash('Contact updated successfully!', 'success')
+        return redirect(url_for('dashboard'))
+
+    # On a GET request, show the form pre-filled with the contact's data
+    return render_template('edit_contact.html', contact=contact)
+
+@app.route('/delete_contact/<contact_id>')
+@login_required
+def delete_contact(contact_id):
+    # Try to delete the contact, ensuring it belongs to the current user
+    result = db.contacts.delete_one({'_id': ObjectId(contact_id), 'user_id': current_user._id})
+
+    if result.deleted_count > 0:
+        flash('Contact deleted successfully.', 'success')
+    else:
+        # This can happen if the contact doesn't exist or doesn't belong to the user
+        flash('Error: Could not delete contact.', 'danger')
+        
+    return redirect(url_for('dashboard'))
+
+@app.route('/websocket_demo')
+def websocket_demo():
+    # This route is public, no @login_required
+    return render_template('websocket_demo.html')
+
+@app.route('/documentation/contact-app')
+def docs_contact_app():
+    """Serves the documentation page for the main Flask app."""
+    return render_template('docs_contact_app.html')
+
+@app.route('/documentation/websocket')
+def docs_websocket():
+    """Serves the documentation page for the WebSocket demo."""
+    return render_template('docs_websocket.html')
+
 @app.route('/test_email')
 def test_email():
     msg = Message('Test Email', sender=app.config['MAIL_USERNAME'], recipients=['capsboost@gmail.com'])  # Replace with your email

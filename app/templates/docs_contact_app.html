@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Docs: Contact Manager App{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-10">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h1 class="text-center">Documentation: Flask Contact Manager</h1>
+            </div>
+            <div class="card-body p-4 p-md-5">
+
+                <p class="lead">This document details the implementation of the Flask and MongoDB-based contact management application (Question 1).</p>
+
+                <hr class="my-4">
+
+                <h2 class="mb-3">1. Core Application Structure</h2>
+                <p>The application follows a standard Flask package structure to separate concerns.</p>
+                <ul>
+                    <li><strong><code>run.py</code>:</strong> The main entry point to start the application. It simply imports the <code>app</code> instance from the <code>app</code> package and runs it.</li>
+                    <li><strong><code>config.py</code>:</strong> Defines a <code>Config</code> class to load environment variables (like secret keys and database URIs) from a <code>.env</code> file.</li>
+                    <li><strong><code>app/__init__.py</code>:</strong> Acts as the application factory. It initializes the Flask <code>app</code>, loads the configuration, connects to MongoDB via <code>PyMongo</code>, and initializes extensions like <code>Flask-Login</code> and <code>Flask-Mail</code>.</li>
+                </ul>
+
+                <hr class="my-4">
+
+                <h2 class="mb-3">2. Database and Models (<code>app/models.py</code>)</h2>
+                <p>This application interacts directly with MongoDB using <code>PyMongo</code> rather than an ORM. The <code>models.py</code> file defines helper classes for managing data.</p>
+                
+                <h4>The <code>User</code> Class</h4>
+                <ul>
+                    <li>Inherits from <code>UserMixin</code> (from <code>Flask-Login</code>) to get required properties like <code>is_authenticated</code>.</li>
+                    <li><strong><code>set_password(password)</code>:</strong> Generates a secure hash from a plain-text password using <code>werkzeug.security.generate_password_hash</code>.</li>
+                    <li><strong><code>check_password(password)</code>:</strong> Compares a plain-text password to the stored hash using <code>check_password_hash</code>.</li>
+                    <li><strong>Static Methods (e.g., <code>get_by_id</code>, <code>get_by_username</code>):</strong> Class methods used to query the <code>db.users</code> collection in MongoDB to find and reconstruct a <code>User</code> object.</li>
+                    <li><strong><code> @login_manager.user_loader</code>:</strong> The <code>load_user</code> function is required by Flask-Login to retrieve a user from the session by their ID.</li>
+                </ul>
+                
+                <h4>The <code>Contact</code> Class</h4>
+                <ul>
+                    <li>A simple helper class whose <code>__init__</code> method accepts contact details.</li>
+                    <li><strong><code>save()</code>:</strong> A method that inserts the contact's data as a new document into the <code>db.contacts</code> collection.</li>
+                </ul>
+
+                <hr class="my-4">
+
+                <h2 class="mb-3">3. Routes and Views (<code>app/routes.py</code>)</h2>
+                <p>This file defines all the application's URL endpoints and their corresponding logic.</p>
+
+                <h4>Authentication Routes</h4>
+                <ul>
+                    <li><strong><code>/login</code>:</strong> Handles <code>GET</code> (shows <code>login.html</code>) and <code>POST</code> requests. On <code>POST</code>, it finds the user, checks their password, and, if valid, calls <code>login_user()</code> to create a user session.</li>
+                    <li><strong><code>/register</code>:</strong> Handles <code>GET</code> (shows <code>register.html</code>) and <code>POST</code> requests. On <code>POST</code>, it validates that the username/email isn't already taken, creates a new <code>User</code>, sets the hashed password, and saves it to the <code>db.users</code> collection.</li>
+                    <li><strong><code>/logout</code>:</strong> A <code> @login_required</code> route that simply calls <code>logout_user()</code> to clear the session and redirects to the login page.</li>
+                </ul>
+
+                <h4>Password Reset Routes</h4>
+                <ul>
+                    <li><strong><code>/reset_password_request</code>:</strong>
+                        <ol>
+                            <li>Finds a user by their email.</li>
+                            <li>Generates a secure, URL-safe token using <code>secrets.token_urlsafe(32)</code>.</li>
+                            <li>Stores this token and the <code>user_id</code> in a new <code>db.password_resets</code> collection with a timestamp.</li>
+                            <li>Uses <code>Flask-Mail</code> to send an email to the user containing a link to the <code>/reset_password/&lt;token&gt;</code> route.</li>
+                        </ol>
+                    </li>
+                    <li><strong><code>/reset_password/&lt;token&gt;</code>:</strong>
+                        <ol>
+                            <li>Queries the <code>db.password_resets</code> collection for the token, ensuring it's not expired (e.g., within 24 hours).</li>
+                            <li>If valid, it shows the <code>reset_password.html</code> template.</li>
+                            <li>On <code>POST</code> from this form, it hashes the new password, updates the user's document in the <code>db.users</code> collection, and deletes the token from <code>db.password_resets</code> so it can't be reused.</li>
+                        </ol>
+                    </li>
+                </ul>
+
+                <h4>Contact Management (CRUD) Routes</h4>
+                <ul>
+                    <li><strong>Create:</strong> <code>/contact_form</code> renders a form and, on <code>POST</code>, saves a new document to <code>db.contacts</code> linked to the <code>current_user._id</code>.</li>
+                    <li><strong>Read:</strong> <code>/dashboard</code> queries <code>db.contacts</code> for all documents where <code>user_id</code> matches <code>current_user._id</code> and passes them to the <code>dashboard.html</code> template.</li>
+                    <li><strong>Search:</strong> <code>/search</code> uses a MongoDB query with <code>$regex</code> to perform a case-insensitive search across multiple fields (<code>mobile</code>, <code>email</code>, <code>reg_number</code>) for the current user's contacts.</li>
+                    <li><strong>Update:</strong> <code>/edit_contact/&lt;contact_id&gt;</code> uses <code>db.contacts.find_one()</code> to get data for the form, and <code>db.contacts.update_one()</code> to save changes on <code>POST</code>.</li>
+                    <li><strong>Delete:</strong> <code>/delete_contact/&lt;contact_id&gt;</code> uses <code>db.contacts.delete_one()</code> to remove the contact.</li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
